@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            height: 100vh;
+        }
+        .auth-card {
+            width: 400px;
+            border-radius: 15px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="d-flex justify-content-center align-items-center">
+
+<div class="card auth-card shadow p-4">
+
+    <!-- LOGIN -->
+    <div id="loginSection">
+        <h3 class="text-center mb-3">Login</h3>
+
+        <input id="loginEmail" class="form-control mb-1" placeholder="Email">
+        <p id="loginEmailError" class="text-danger small"></p>
+
+        <input id="loginPassword" type="password" class="form-control mb-1" placeholder="Password">
+        <p id="loginPasswordError" class="text-danger small"></p>
+
+        <button class="btn btn-primary w-100 mt-2" onclick="login()">Login</button>
+
+        <p class="text-center mt-2">
+            <a href="#" onclick="showForgot()">Forgot Password?</a>
+        </p>
+
+        <p class="text-center mt-2">
+            Don't have an account?
+            <a href="#" onclick="showRegister()">Register</a>
+        </p>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="registerSection" class="hidden">
+        <h3 class="text-center mb-3">Register</h3>
+
+        <input id="regUsername" class="form-control mb-1" placeholder="Username">
+        <p id="usernameError" class="text-danger small"></p>
+
+        <input id="regEmail" class="form-control mb-1" placeholder="Email">
+        <p id="emailError" class="text-danger small"></p>
+
+        <input id="regPassword" type="password" class="form-control mb-1" placeholder="Password">
+        <p id="passwordError" class="text-danger small"></p>
+
+        <button class="btn btn-success w-100 mt-2" onclick="register()">Register</button>
+
+        <p class="text-center mt-2">
+            Already have an account?
+            <a href="#" onclick="showLogin()">Login</a>
+        </p>
+    </div>
+
+    <!-- FORGOT -->
+    <div id="forgotSection" class="hidden">
+        <h3 class="text-center mb-3">Forgot Password</h3>
+
+        <input id="forgotEmail" class="form-control mb-1" placeholder="Enter email">
+        <p id="forgotError" class="text-danger small"></p>
+
+        <button class="btn btn-warning w-100 mt-2" onclick="forgotPassword()">Send Reset Link</button>
+
+        <p class="text-center mt-2">
+            <a href="#" onclick="showLogin()">Back to Login</a>
+        </p>
+    </div>
+
+</div>
+
+<script>
+
+    //  SWITCH
+    function showRegister() {
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("registerSection").classList.remove("hidden");
+        document.getElementById("forgotSection").classList.add("hidden");
+    }
+
+    function showLogin() {
+        document.getElementById("loginSection").classList.remove("hidden");
+        document.getElementById("registerSection").classList.add("hidden");
+        document.getElementById("forgotSection").classList.add("hidden");
+    }
+
+    function showForgot() {
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("registerSection").classList.add("hidden");
+        document.getElementById("forgotSection").classList.remove("hidden");
+    }
+
+    //  EMAIL VALIDATION
+    function isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    //  LOGIN
+    function login() {
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value.trim();
+
+        document.getElementById("loginEmailError").innerText = "";
+        document.getElementById("loginPasswordError").innerText = "";
+
+        let valid = true;
+
+        if (!email) {
+            document.getElementById("loginEmailError").innerText = "Email required";
+            valid = false;
+        } else if (!isValidEmail(email)) {
+            document.getElementById("loginEmailError").innerText = "Enter valid email";
+            valid = false;
+        }
+
+        if (!password) {
+            document.getElementById("loginPasswordError").innerText = "Password required";
+            valid = false;
+        }
+
+        if (!valid) return;
+
+        fetch("http://localhost:8080/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Invalid credentials");
+            return res.text();
+        })
+        .then(token => {
+            localStorage.setItem("token", token);
+            window.location.href = "index.html";
+        })
+        .catch(err => {
+            document.getElementById("loginEmailError").innerText = err.message;
+        });
+    }
+
+    //  REGISTER
+    function register() {
+        const username = document.getElementById("regUsername").value.trim();
+        const email = document.getElementById("regEmail").value.trim();
+        const password = document.getElementById("regPassword").value.trim();
+
+        document.getElementById("usernameError").innerText = "";
+        document.getElementById("emailError").innerText = "";
+        document.getElementById("passwordError").innerText = "";
+
+        let valid = true;
+
+        if (!username) {
+            document.getElementById("usernameError").innerText = "Username required";
+            valid = false;
+        }
+
+        if (!email) {
+            document.getElementById("emailError").innerText = "Email required";
+            valid = false;
+        } else if (!isValidEmail(email)) {
+            document.getElementById("emailError").innerText = "Enter valid email";
+            valid = false;
+        }
+
+        if (!password) {
+            document.getElementById("passwordError").innerText = "Password required";
+            valid = false;
+        } else if (password.length < 6) {
+            document.getElementById("passwordError").innerText = "Minimum 6 characters required";
+            valid = false;
+        }
+
+        if (!valid) return;
+
+        fetch("http://localhost:8080/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, email, password })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Registration failed");
+            return res.text();
+        })
+        .then(msg => {
+            alert(msg);
+            showLogin();
+        })
+        .catch(err => {
+            document.getElementById("emailError").innerText = err.message;
+        });
+    }
+
+    //  FORGOT (UI only)
+    function forgotPassword() {
+        const email = document.getElementById("forgotEmail").value.trim();
+
+        document.getElementById("forgotError").innerText = "";
+
+        if (!email || !isValidEmail(email)) {
+            document.getElementById("forgotError").innerText = "Enter valid email";
+            return;
+        }
+
+        alert("Backend not implemented yet");
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,9 +1,12 @@
 package com.ecommerce.ecommercebackend.entity;
 
 import jakarta.persistence.*;
-
+import lombok.Getter;
+import lombok.Setter;
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
 public class User {
 
     @Id
@@ -13,30 +16,12 @@ public class User {
     @Column(unique = true, nullable = false)
     private String username;
 
+    @Column(unique = true)
+    private String email;
+
     @Column(nullable = false)
     private String password;
 
-    public Long getId() {
-        return id;
-    }
+    private String role;
 
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 }
